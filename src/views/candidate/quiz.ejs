@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= test.title %> — Exercise Test</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="wrap-narrow">
+    <div class="quiz-header">
+      <div>
+        <h1 style="margin-bottom:2px;"><%= test.title %> — Exercise Test</h1>
+        <p class="subtitle" style="margin:0;"><%= candidate.name %> · <%= questions.length %> questions</p>
+      </div>
+      <div class="timer" id="timer">--:--</div>
+    </div>
+
+    <div class="qjump" id="qjump">
+      <% questions.forEach(function(q, i) { %><a href="#q<%= i+1 %>" data-jump="<%= i+1 %>"><%= i+1 %></a><% }) %>
+    </div>
+
+    <form id="quizForm" method="post" action="/test/<%= token %>/submit">
+      <% var lastPassage = null; %>
+      <% questions.forEach(function(q, i) { %>
+      <% if (q.passageId && q.passageId !== lastPassage) { %>
+      <div class="card passage-card">
+        <div class="qnum">Reading text</div>
+        <h2 class="passage-title"><%= q.passageTitle %></h2>
+        <div class="passage md"><%- md(q.passage) %></div>
+      </div>
+      <% } %>
+      <% lastPassage = q.passageId; %>
+      <div class="card question-card" id="q<%= i+1 %>" data-qid="<%= q.id %>">
+        <div class="qnum">Question <%= i+1 %> of <%= questions.length %> · <%= q.category %></div>
+        <div class="qtext md"><%- md(q.text) %></div>
+        <% if (q.type === 'BS') { %>
+        <div class="qhint">Choose Benar (true) or Salah (false) for every statement.</div>
+        <table class="bs-table">
+          <thead><tr><th>Statement</th><th>Benar</th><th>Salah</th></tr></thead>
+          <tbody>
+          <% q.statements.forEach(function(st, k) { %>
+          <tr>
+            <td><%- md(st) %></td>
+            <td><input type="radio" name="answer_<%= q.id %>_<%= k %>" value="1" aria-label="Benar" /></td>
+            <td><input type="radio" name="answer_<%= q.id %>_<%= k %>" value="0" aria-label="Salah" /></td>
+          </tr>
+          <% }) %>
+          </tbody>
+        </table>
+        <% } else { %>
+        <% if (q.type === 'PGK') { %><div class="qhint">Select all correct answers (more than one).</div><% } %>
+        <% q.options.forEach(function(opt, idx) { %>
+        <label class="option" data-qidx="<%= i %>">
+          <input type="<%= q.type === 'PGK' ? 'checkbox' : 'radio' %>" name="answer_<%= q.id %>" value="<%= idx %>" />
+          <span class="opt-letter"><%= String.fromCharCode(65+idx) %>.</span>
+          <span><%= opt %></span>
+        </label>
+        <% }) %>
+        <% } %>
+      </div>
+      <% }) %>
+
+      <div class="quiz-footer">
+        <span id="answeredCount" class="field-hint">0 / <%= questions.length %> answered</span>
+        <button class="btn" type="submit" id="submitBtn">Submit Test</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    window.QUIZ_TOKEN = <%- JSON.stringify(token) %>;
+    window.QUIZ_DEADLINE_MS = <%- deadlineAt %>;
+    window.QUIZ_TOTAL = <%= questions.length %>;
+  </script>
+  <script src="/js/quiz.js"></script>
+</body>
+</html>

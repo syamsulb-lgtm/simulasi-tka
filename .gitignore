@@ -1,0 +1,6 @@
+.venv/
+
+node_modules/
+logs/
+.DS_Store
+simulasi-tka/

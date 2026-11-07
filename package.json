@@ -1,0 +1,22 @@
+{
+  "name": "test-generator",
+  "version": "1.0.0",
+  "description": "Dynamic web app for personalized employee hiring exercise tests",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "seed": "node src/seed/seed.js"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "connect-flash": "^0.1.1",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "lowdb": "^7.0.1",
+    "nanoid": "^5.0.7"
+  }
+}

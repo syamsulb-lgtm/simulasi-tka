@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= title %> · Simulasi Test Admin</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="topnav">
+    <div class="inner">
+      <div class="brand">Simulasi<span>Test</span> Admin</div>
+      <nav>
+        <a href="/admin" class="<%= active === 'dashboard' ? 'active' : '' %>">Dashboard</a>
+        <a href="/admin/tests" class="<%= active === 'tests' ? 'active' : '' %>">Tests</a>
+        <a href="/admin/candidates" class="<%= active === 'candidates' ? 'active' : '' %>">Candidates</a>
+        <a href="/admin/results" class="<%= active === 'results' ? 'active' : '' %>">Results</a>
+        <a href="/admin/questions" class="<%= active === 'questions' ? 'active' : '' %>">Question Bank</a>
+        <form method="post" action="/admin/logout">
+          <button class="logout-btn" type="submit">Log out</button>
+        </form>
+      </nav>
+    </div>
+  </div>
+  <main class="page">
+    <div class="wrap">

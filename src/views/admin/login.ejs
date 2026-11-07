@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Login · Simulasi Test</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="center-page">
+    <div class="card" style="width: 100%; max-width: 380px;">
+      <h1>Admin Login</h1>
+      <p class="subtitle">Simulasi Test platform</p>
+      <%- include('../partials/flash') %>
+      <form method="post" action="/admin/login">
+        <div class="field">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" required autofocus />
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required />
+        </div>
+        <button class="btn" type="submit" style="width:100%; justify-content:center;">Log in</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

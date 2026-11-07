@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Test Submitted — <%= test.title %></title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="center-page">
+    <div class="card" style="max-width:480px; width:100%;">
+      <div class="score-hero">
+        <p class="subtitle" style="margin-bottom:4px;">Thanks, <%= candidate.name %> — your test has been submitted.</p>
+        <div class="big <%= passed ? 'pass' : 'fail' %>"><%= percentage %>%</div>
+        <p class="field-hint"><%= correctCount %> of <%= total %> correct</p>
+        <span class="badge <%= passed ? 'badge-pass' : 'badge-fail' %>" style="font-size:0.9rem;"><%= passed ? 'Pass' : 'Below passing mark' %></span>
+      </div>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.88rem;">
+        The recruiting team has been notified of your result for <strong><%= test.title %></strong>. You may close this window.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

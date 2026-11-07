@@ -1,0 +1,44 @@
+<%- include('../partials/adminTop', { title: 'Candidates', active: 'candidates' }) %>
+<%- include('../partials/flash') %>
+<div class="page-header">
+  <div>
+    <h1>Candidates</h1>
+    <p class="subtitle">Invite a candidate to a test-specific exercise test and share their unique link.</p>
+  </div>
+  <a class="btn" href="/admin/candidates/new">+ Invite Candidate</a>
+</div>
+
+<% if (rows.length === 0) { %>
+  <div class="card"><div class="empty-state">No candidates yet.</div></div>
+<% } else { %>
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Name</th><th>Email</th><th>Test</th><th>Status</th><th>Score</th><th></th></tr></thead>
+      <tbody>
+        <% rows.forEach(function(r) { %>
+        <tr>
+          <td><%= r.candidate.name %></td>
+          <td><%= r.candidate.email %></td>
+          <td><%= r.testTitle %></td>
+          <td><span class="badge badge-<%= r.exam ? r.exam.status : 'pending' %>"><%= r.exam ? r.exam.status.replace('_',' ') : 'no exam' %></span></td>
+          <td><%= r.result ? r.result.percentage + '%' : '—' %></td>
+          <td style="white-space:nowrap;">
+            <% if (r.exam && r.exam.status !== 'completed') { %>
+              <a class="btn btn-secondary btn-sm" href="/admin/candidates/<%= r.candidate.id %>">View link</a>
+            <% } %>
+            <% if (r.result) { %>
+              <a class="btn btn-secondary btn-sm" href="/admin/results/<%= r.result.id %>">View result</a>
+            <% } %>
+            <form class="inline" method="post" action="/admin/candidates/<%= r.candidate.id %>/regenerate" onsubmit="return confirm('Generate a fresh test link for this candidate? Any in-progress test link will stop working.');">
+              <button class="btn btn-secondary btn-sm" type="submit">New link</button>
+            </form>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+<% } %>
+<%- include('../partials/adminBottom') %>

@@ -1,0 +1,26 @@
+<%- include('../partials/adminTop', { title: candidate.name, active: 'candidates' }) %>
+<%- include('../partials/flash') %>
+<div class="page-header">
+  <div>
+    <h1><%= candidate.name %></h1>
+    <p class="subtitle"><%= candidate.email %> · <%= testTitle %></p>
+  </div>
+  <a class="btn btn-secondary" href="/admin/candidates">&larr; Back to candidates</a>
+</div>
+
+<div class="card">
+  <h2>Test invite link</h2>
+  <p class="field-hint">Share this link with the candidate. It is single-use per generation — starting the test locks in the question set and timer.</p>
+  <div class="link-box">
+    <code id="inviteLink"><%= inviteUrl %></code>
+    <button class="btn btn-sm btn-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('inviteLink').textContent)">Copy</button>
+  </div>
+  <p style="margin-top:14px;">
+    Status: <span class="badge badge-<%= exam.status %>"><%= exam.status.replace('_',' ') %></span>
+    <% if (exam.status === 'in_progress') { %> · started <%= exam.startedAtDisplay %><% } %>
+  </p>
+  <form method="post" action="/admin/candidates/<%= candidate.id %>/regenerate" onsubmit="return confirm('Generate a fresh link? The current one will stop working.');" style="margin-top:10px;">
+    <button class="btn btn-secondary btn-sm" type="submit">Generate new link</button>
+  </form>
+</div>
+<%- include('../partials/adminBottom') %>

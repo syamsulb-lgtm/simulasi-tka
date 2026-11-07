@@ -1,0 +1,39 @@
+<%- include('../partials/adminTop', { title: 'Tests', active: 'tests' }) %>
+<%- include('../partials/flash') %>
+<div class="page-header">
+  <div>
+    <h1>Tests</h1>
+    <p class="subtitle">Each test defines how its exercise test is personalized: number of questions, topic mix, and difficulty mix.</p>
+  </div>
+  <a class="btn" href="/admin/tests/new">+ New Test</a>
+</div>
+
+<% if (tests.length === 0) { %>
+  <div class="card"><div class="empty-state">No tests yet. Create one to start generating tests.</div></div>
+<% } else { %>
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Title</th><th>Questions</th><th>Time limit</th><th>Passing</th><th>Topic mix</th><th></th></tr></thead>
+      <tbody>
+        <% tests.forEach(function(p) { %>
+        <tr>
+          <td><strong><%= p.title %></strong></td>
+          <td><%= p.totalQuestions %></td>
+          <td><%= p.timeLimitMinutes %> min</td>
+          <td><%= p.passingPercent %>%</td>
+          <td><%= p.topicWeights.map(function(t){ return t.category + ' ' + t.percent + '%'; }).join(', ') %></td>
+          <td style="white-space:nowrap;">
+            <a class="btn btn-secondary btn-sm" href="/admin/tests/<%= p.id %>/edit">Edit</a>
+            <form class="inline" method="post" action="/admin/tests/<%= p.id %>/delete" onsubmit="return confirm('Delete this test? Existing candidates/exams for it will remain but you will not be able to invite new ones.');">
+              <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+<% } %>
+<%- include('../partials/adminBottom') %>

@@ -1,0 +1,34 @@
+<%- include('../partials/adminTop', { title: 'Results', active: 'results' }) %>
+<%- include('../partials/flash') %>
+<div class="page-header">
+  <div>
+    <h1>Results</h1>
+    <p class="subtitle">All completed exercise tests.</p>
+  </div>
+</div>
+
+<% if (results.length === 0) { %>
+  <div class="card"><div class="empty-state">No completed tests yet.</div></div>
+<% } else { %>
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Candidate</th><th>Test</th><th>Score</th><th>Result</th><th>Duration</th><th>Submitted</th><th></th></tr></thead>
+      <tbody>
+        <% results.forEach(function(r) { %>
+        <tr>
+          <td><%= r.candidateName %></td>
+          <td><%= r.testTitle %></td>
+          <td><%= r.percentage %>% (<%= r.correctCount %>/<%= r.total %>)</td>
+          <td><span class="badge <%= r.passed ? 'badge-pass' : 'badge-fail' %>"><%= r.passed ? 'Pass' : 'Fail' %></span></td>
+          <td><%= r.durationDisplay %></td>
+          <td><%= r.submittedAtDisplay %></td>
+          <td><a class="btn btn-secondary btn-sm" href="/admin/results/<%= r.id %>">View</a></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+<% } %>
+<%- include('../partials/adminBottom') %>

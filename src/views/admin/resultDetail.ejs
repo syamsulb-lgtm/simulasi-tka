@@ -1,0 +1,93 @@
+<%- include('../partials/adminTop', { title: 'Result', active: 'results' }) %>
+<%- include('../partials/flash') %>
+<div class="page-header">
+  <div>
+    <h1><%= result.candidateName %></h1>
+    <p class="subtitle"><%= result.testTitle %> · submitted <%= result.submittedAtDisplay %> · took <%= result.durationDisplay %></p>
+  </div>
+  <a class="btn btn-secondary" href="/admin/results">&larr; Back to results</a>
+</div>
+
+<div class="grid grid-cols-3">
+  <div class="card stat-card">
+    <div class="num"><%= result.percentage %>%</div>
+    <div class="label">Overall score (<%= result.correctCount %>/<%= result.total %>)</div>
+  </div>
+  <div class="card stat-card">
+    <div class="num"><span class="badge <%= result.passed ? 'badge-pass' : 'badge-fail' %>" style="font-size:1rem;"><%= result.passed ? 'Pass' : 'Fail' %></span></div>
+    <div class="label">Passing mark was <%= result.passingPercent %>%</div>
+  </div>
+  <div class="card stat-card">
+    <div class="num"><%= result.durationDisplay %></div>
+    <div class="label">Time limit was <%= result.timeLimitMinutes %> min</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Breakdown by topic</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Topic</th><th>Correct</th><th>Score</th></tr></thead>
+      <tbody>
+        <% result.byCategory.forEach(function(c) { %>
+        <tr>
+          <td><%= c.category %></td>
+          <td><%= c.correct %>/<%= c.total %></td>
+          <td>
+            <div class="progress-bar"><span style="width: <%= c.percentage %>%;"></span></div>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Question-by-question review</h2>
+  <% var lastPassage = null; %>
+  <% result.breakdown.forEach(function(b, i) { %>
+  <% if (b.passage && b.passageTitle !== lastPassage) { %>
+  <details class="passage-card" style="margin-bottom:10px;">
+    <summary><strong>Reading text:</strong> <%= b.passageTitle %></summary>
+    <div class="passage md"><%- md(b.passage) %></div>
+  </details>
+  <% } %>
+  <% lastPassage = b.passage ? b.passageTitle : null; %>
+  <div class="question-card">
+    <div class="qnum">Q<%= i + 1 %> · <%= b.category %> · <%= b.type %> · <span class="badge badge-<%= b.level %>"><%= b.level %></span> · <span class="badge <%= b.correct ? 'badge-pass' : 'badge-fail' %>"><%= b.correct ? 'Correct' : 'Incorrect' %></span></div>
+    <div class="qtext md"><%- md(b.text) %></div>
+    <% if (b.type === 'BS') { %>
+    <table class="bs-table">
+      <thead><tr><th>Statement</th><th>Candidate</th><th>Key</th></tr></thead>
+      <tbody>
+      <% b.statements.forEach(function(st, k) {
+           var given = b.answer ? b.answer[k] : null;
+           var ok = given === b.correctAnswers[k]; %>
+      <tr class="<%= ok ? 'row-correct' : 'row-incorrect' %>">
+        <td><%- md(st) %></td>
+        <td><%= given === null ? '—' : (given ? 'Benar' : 'Salah') %></td>
+        <td><%= b.correctAnswers[k] ? 'Benar' : 'Salah' %></td>
+      </tr>
+      <% }) %>
+      </tbody>
+    </table>
+    <% } else {
+         var keys = b.type === 'PGK' ? b.correctIndexes : [b.correctIndex];
+         var picked = b.answer === null ? [] : [].concat(b.answer); %>
+    <% b.options.forEach(function(opt, idx) {
+         var isKey = keys.indexOf(idx) !== -1, isPicked = picked.indexOf(idx) !== -1; %>
+    <div class="option <%= isKey ? 'correct' : (isPicked ? 'incorrect' : '') %>">
+      <span class="opt-letter"><%= String.fromCharCode(65 + idx) %>.</span>
+      <span><%= opt %></span>
+      <% if (isPicked && !isKey) { %><span style="margin-left:auto; color:var(--danger); font-size:0.8rem;">Candidate's answer</span><% } %>
+      <% if (isKey) { %><span style="margin-left:auto; color:var(--success); font-size:0.8rem;"><%= isPicked ? 'Correct · selected' : 'Correct' %></span><% } %>
+    </div>
+    <% }) %>
+    <% } %>
+    <% if (b.answer === null) { %><div class="alert alert-warning" style="margin:8px 0 0;">Not answered</div><% } %>
+    <div class="explanation"><strong>Why:</strong> <%= b.explanation %></div>
+  </div>
+  <% }) %>
+</div>
+<%- include('../partials/adminBottom') %>

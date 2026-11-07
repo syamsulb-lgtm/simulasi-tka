@@ -1,0 +1,63 @@
+<%- include('../partials/adminTop', { title: 'Question Bank', active: 'questions' }) %>
+<%- include('../partials/flash') %>
+<div class="page-header">
+  <div>
+    <h1>Question Bank</h1>
+    <p class="subtitle"><%= total %> questions across <%= categories.length %> topics, seeded from the Bank_Soal_TKA_SMA_*.md files. Adjust a question's difficulty if the auto-assigned level looks off.</p>
+  </div>
+</div>
+
+<div class="card">
+  <form method="get" action="/admin/questions" class="field-row" style="align-items:end;">
+    <div class="field">
+      <label for="category">Topic</label>
+      <select id="category" name="category">
+        <option value="">All topics</option>
+        <% categories.forEach(function(c) { %>
+        <option value="<%= c %>" <%= filter.category === c ? 'selected' : '' %>><%= c %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="field">
+      <label for="level">Difficulty</label>
+      <select id="level" name="level">
+        <option value="">All levels</option>
+        <% ['easy','medium','hard'].forEach(function(l) { %>
+        <option value="<%= l %>" <%= filter.level === l ? 'selected' : '' %>><%= l %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="field" style="flex:0;">
+      <button class="btn btn-secondary" type="submit">Filter</button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th style="width:40%;">Question</th><th>Type</th><th>Topic</th><th>Difficulty</th><th></th></tr></thead>
+      <tbody>
+        <% questions.forEach(function(q) { %>
+        <tr>
+          <td><% if (q.passageTitle) { %><div class="field-hint"><%= q.passageTitle %></div><% } %><%= q.text.split('\n')[0] %></td>
+          <td><%= q.type || 'PG' %></td>
+          <td><%= q.category %></td>
+          <td>
+            <form class="inline" method="post" action="/admin/questions/<%= q.id %>/level">
+              <select name="level" onchange="this.form.submit()" class="badge-<%= q.level %>" style="width:auto; padding:4px 8px;">
+                <% ['easy','medium','hard'].forEach(function(l) { %>
+                <option value="<%= l %>" <%= q.level === l ? 'selected' : '' %>><%= l %></option>
+                <% }) %>
+              </select>
+            </form>
+          </td>
+          <td></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% if (questions.length === 0) { %><div class="empty-state">No questions match this filter.</div><% } %>
+</div>
+<%- include('../partials/adminBottom') %>

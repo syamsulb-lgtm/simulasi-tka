@@ -1,0 +1,114 @@
+<%- include('../partials/adminTop', { title: test ? 'Edit Test' : 'New Test', active: 'tests' }) %>
+<%- include('../partials/flash') %>
+<div class="page-header">
+  <div>
+    <h1><%= test ? 'Edit Test' : 'New Test' %></h1>
+    <p class="subtitle">Define the topic mix, difficulty mix, question count, and timer for this role's exercise test.</p>
+  </div>
+  <a class="btn btn-secondary" href="/admin/tests">&larr; Back to tests</a>
+</div>
+
+<form method="post" action="<%= test ? '/admin/tests/' + test.id : '/admin/tests' %>" id="testForm">
+  <div class="card">
+    <h2>Basics</h2>
+    <div class="field">
+      <label for="title">Test title</label>
+      <input type="text" id="title" name="title" required value="<%= test ? test.title : '' %>" placeholder="e.g. Backend Engineer" />
+    </div>
+    <div class="field">
+      <label for="description">Description (shown to candidate)</label>
+      <textarea id="description" name="description" rows="2" placeholder="Optional notes shown on the test landing page"><%= test ? test.description : '' %></textarea>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="totalQuestions">Number of questions</label>
+        <input type="number" id="totalQuestions" name="totalQuestions" min="1" max="200" required value="<%= test ? test.totalQuestions : 20 %>" />
+      </div>
+      <div class="field">
+        <label for="timeLimitMinutes">Time limit (minutes)</label>
+        <input type="number" id="timeLimitMinutes" name="timeLimitMinutes" min="1" max="480" required value="<%= test ? test.timeLimitMinutes : 30 %>" />
+      </div>
+      <div class="field">
+        <label for="passingPercent">Passing score (%)</label>
+        <input type="number" id="passingPercent" name="passingPercent" min="0" max="100" required value="<%= test ? test.passingPercent : 70 %>" />
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Topic distribution</h2>
+    <p class="field-hint">Percentage of the test drawn from each topic. Must total 100%. Topics left at 0% are excluded.</p>
+    <div id="topicRows">
+      <% categories.forEach(function(cat) { %>
+      <% var existing = test ? test.topicWeights.find(function(t){ return t.category === cat; }) : null; %>
+      <div class="weight-row">
+        <div class="field" style="margin-bottom:0;">
+          <label><%= cat %></label>
+          <input type="text" disabled value="<%= cat %>" />
+          <input type="hidden" name="topicCategory" value="<%= cat %>" />
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Percent</label>
+          <input type="number" class="topic-percent" name="topicPercent" min="0" max="100" value="<%= existing ? existing.percent : 0 %>" />
+        </div>
+        <div></div>
+      </div>
+      <% }) %>
+    </div>
+    <div class="weight-total" id="topicTotal">Total: 0%</div>
+  </div>
+
+  <div class="card">
+    <h2>Difficulty distribution</h2>
+    <label style="display:flex; align-items:center; gap:8px; font-weight:500; margin-bottom:14px;">
+      <input type="checkbox" id="enforceLevels" name="enforceLevels" style="width:auto;" <%= (test && test.levelWeights) ? 'checked' : '' %> />
+      Enforce a specific easy / medium / hard mix (otherwise difficulty is ignored when picking questions)
+    </label>
+    <div id="levelRows" style="<%= (test && test.levelWeights) ? '' : 'opacity:0.4;' %>">
+      <% ['easy','medium','hard'].forEach(function(lvl) { %>
+      <% var existing = (test && test.levelWeights) ? test.levelWeights.find(function(l){ return l.level === lvl; }) : null; %>
+      <div class="weight-row">
+        <div class="field" style="margin-bottom:0;">
+          <label style="text-transform:capitalize;"><%= lvl %></label>
+          <input type="hidden" name="levelName" value="<%= lvl %>" />
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Percent</label>
+          <input type="number" class="level-percent" name="levelPercent" min="0" max="100" value="<%= existing ? existing.percent : (lvl === 'medium' ? 100 : 0) %>" id="levelPercent-<%= lvl %>" />
+        </div>
+        <div></div>
+      </div>
+      <% }) %>
+    </div>
+    <div class="weight-total" id="levelTotal">Total: 100%</div>
+  </div>
+
+  <div class="card" style="display:flex; gap:12px;">
+    <button class="btn" type="submit"><%= test ? 'Save changes' : 'Create test' %></button>
+    <a class="btn btn-secondary" href="/admin/tests">Cancel</a>
+  </div>
+</form>
+
+<script>
+  function wireTotal(selector, totalEl) {
+    function recompute() {
+      var inputs = document.querySelectorAll(selector);
+      var sum = 0;
+      inputs.forEach(function(i) { sum += Number(i.value || 0); });
+      totalEl.textContent = 'Total: ' + sum + '%';
+      totalEl.classList.remove('ok', 'bad');
+      totalEl.classList.add(sum === 100 ? 'ok' : 'bad');
+    }
+    document.querySelectorAll(selector).forEach(function(i) { i.addEventListener('input', recompute); });
+    recompute();
+  }
+  wireTotal('.topic-percent', document.getElementById('topicTotal'));
+  wireTotal('.level-percent', document.getElementById('levelTotal'));
+
+  var enforceLevels = document.getElementById('enforceLevels');
+  var levelRows = document.getElementById('levelRows');
+  enforceLevels.addEventListener('change', function() {
+    levelRows.style.opacity = enforceLevels.checked ? '1' : '0.4';
+  });
+</script>
+<%- include('../partials/adminBottom') %>

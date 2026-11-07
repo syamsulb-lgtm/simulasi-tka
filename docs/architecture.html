@@ -1,0 +1,827 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<title>Test Generator</title>
+<style>
+  :root {
+    --paper: #f6f7fb;
+    --surface: #ffffff;
+    --ink: #1b2130;
+    --ink-soft: #5b6472;
+    --ink-faint: #8991a1;
+    --border: #dfe3ee;
+    --accent: #2f5cff;
+    --accent-ink: #1e3fd1;
+    --accent-soft: #eaefff;
+    --mono-bg: #11141d;
+    --mono-ink: #d7ddf0;
+    --mono-border: #2a3040;
+    --good: #157a4d;
+    --good-soft: #e8f7ef;
+    --warn: #9a5b12;
+    --warn-soft: #fbf1e3;
+    --shadow: 0 1px 2px rgba(20, 24, 40, 0.05), 0 6px 20px rgba(20, 24, 40, 0.06);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #14161f;
+      --surface: #1b1e29;
+      --ink: #e8eaf2;
+      --ink-soft: #a7adbd;
+      --ink-faint: #757c8d;
+      --border: #2b2f3d;
+      --accent: #6f8dff;
+      --accent-ink: #a9b9ff;
+      --accent-soft: #232a45;
+      --mono-bg: #0c0e15;
+      --mono-ink: #cfd5e8;
+      --mono-border: #262b3a;
+      --good: #4fce93;
+      --good-soft: #163326;
+      --warn: #e0aa5a;
+      --warn-soft: #362a15;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 24px rgba(0, 0, 0, 0.35);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #14161f;
+    --surface: #1b1e29;
+    --ink: #e8eaf2;
+    --ink-soft: #a7adbd;
+    --ink-faint: #757c8d;
+    --border: #2b2f3d;
+    --accent: #6f8dff;
+    --accent-ink: #a9b9ff;
+    --accent-soft: #232a45;
+    --mono-bg: #0c0e15;
+    --mono-ink: #cfd5e8;
+    --mono-border: #262b3a;
+    --good: #4fce93;
+    --good-soft: #163326;
+    --warn: #e0aa5a;
+    --warn-soft: #362a15;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+  }
+
+  .display {
+    font-family: "Fraunces", Georgia, serif;
+    font-optical-sizing: auto;
+    text-wrap: balance;
+  }
+
+  code, .mono, pre {
+    font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .shell {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 232px 1fr;
+    gap: 48px;
+    align-items: start;
+  }
+
+  /* ---------- Cover ---------- */
+  .cover {
+    padding: 56px 20px 32px;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .kicker {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.74rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .kicker::before {
+    content: "";
+    width: 22px;
+    height: 1px;
+    background: var(--accent);
+  }
+  .cover h1 {
+    font-size: clamp(2.1rem, 4vw, 3.1rem);
+    font-weight: 600;
+    margin: 0 0 16px;
+    letter-spacing: -0.01em;
+  }
+  .cover .lede {
+    max-width: 660px;
+    color: var(--ink-soft);
+    font-size: 1.08rem;
+    margin: 0 0 28px;
+  }
+  .cover-meta {
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+  }
+  .cover-meta div { display: flex; flex-direction: column; gap: 3px; }
+  .cover-meta .k { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); }
+  .cover-meta .v { font-size: 0.94rem; color: var(--ink); font-family: "IBM Plex Mono", monospace; }
+
+  /* ---------- Sidebar ---------- */
+  nav.toc {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-bottom: 40px;
+  }
+  nav.toc .toc-group { margin-top: 18px; }
+  nav.toc .toc-group:first-child { margin-top: 0; }
+  nav.toc .toc-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    margin-bottom: 6px;
+    padding-left: 10px;
+  }
+  nav.toc a {
+    color: var(--ink-soft);
+    font-size: 0.87rem;
+    padding: 6px 10px;
+    border-radius: 7px;
+    border-left: 2px solid transparent;
+  }
+  nav.toc a:hover { color: var(--ink); text-decoration: none; background: var(--accent-soft); }
+
+  /* ---------- Main content ---------- */
+  main { min-width: 0; padding-bottom: 90px; }
+
+  section { padding: 46px 0; border-top: 1px solid var(--border); }
+  section:first-of-type { border-top: none; padding-top: 8px; }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    margin: 0 0 10px;
+  }
+  h2 {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 600;
+    font-size: 1.7rem;
+    margin: 0 0 14px;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  h3 {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 600;
+    font-size: 1.2rem;
+    margin: 30px 0 10px;
+  }
+  p { max-width: 700px; color: var(--ink-soft); }
+  p.wide { max-width: 100%; }
+  section > p:first-of-type { margin-top: 0; }
+  ul, ol { max-width: 700px; color: var(--ink-soft); padding-left: 22px; }
+  li { margin-bottom: 6px; }
+  li::marker { color: var(--ink-faint); }
+  strong { color: var(--ink); font-weight: 600; }
+
+  .lead { font-size: 1.05rem; color: var(--ink-soft); max-width: 700px; }
+
+  /* diagrams */
+  .diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    margin: 20px 0 8px;
+    overflow-x: auto;
+    box-shadow: var(--shadow);
+  }
+  .diagram .cap {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.76rem;
+    color: var(--ink-faint);
+    margin-top: 14px;
+    border-top: 1px dashed var(--border);
+    padding-top: 10px;
+  }
+  pre.mermaid { margin: 0; }
+
+  /* cards / grids */
+  .grid { display: grid; gap: 14px; margin: 18px 0; }
+  .grid-2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .grid-3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+  @media (max-width: 720px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+  }
+  .card h4 {
+    margin: 0 0 6px;
+    font-size: 0.98rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card p { margin: 0; font-size: 0.9rem; }
+  .card .tag {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.68rem;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+  }
+
+  /* tables */
+  .table-wrap { overflow-x: auto; margin: 16px 0; border: 1px solid var(--border); border-radius: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; background: var(--surface); }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); font-weight: 600; background: var(--paper); }
+  tr:last-child td { border-bottom: none; }
+  td code, th code { font-size: 0.84rem; }
+
+  code {
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+    padding: 1.5px 6px;
+    border-radius: 5px;
+    font-size: 0.87em;
+  }
+
+  pre:not(.mermaid) {
+    background: var(--mono-bg);
+    color: var(--mono-ink);
+    border: 1px solid var(--mono-border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    font-size: 0.84rem;
+    line-height: 1.6;
+    margin: 16px 0;
+  }
+  pre code { background: none; color: inherit; padding: 0; }
+
+  .route-table code { white-space: nowrap; }
+  .method { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 5px; }
+  .method.get { background: var(--good-soft); color: var(--good); }
+  .method.post { background: var(--warn-soft); color: var(--warn); }
+
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-soft);
+    border-radius: 0 10px 10px 0;
+    padding: 12px 16px;
+    margin: 18px 0;
+    max-width: 700px;
+    font-size: 0.92rem;
+    color: var(--ink);
+  }
+  .callout.warn { border-left-color: var(--warn); background: var(--warn-soft); }
+  .callout strong { display: block; margin-bottom: 3px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  .tree {
+    background: var(--mono-bg);
+    color: var(--mono-ink);
+    border: 1px solid var(--mono-border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 16px 0;
+    white-space: pre;
+  }
+  .tree .dim { color: #7d86a0; }
+  .tree .hl { color: #9db4ff; }
+
+  footer {
+    max-width: 700px;
+    color: var(--ink-faint);
+    font-size: 0.82rem;
+    padding: 30px 0 10px;
+  }
+
+  /* mobile: sidebar becomes a horizontal pill strip above content */
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; gap: 16px; }
+    nav.toc {
+      position: static;
+      flex-direction: row;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      gap: 6px;
+      padding: 6px 0 14px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 6px;
+    }
+    nav.toc .toc-group { margin-top: 0; display: flex; gap: 6px; }
+    nav.toc .toc-label { display: none; }
+    nav.toc a { white-space: nowrap; border: 1px solid var(--border); border-left: 1px solid var(--border); }
+  }
+</style>
+
+
+</head>
+<body>
+<div class="cover">
+  <div class="kicker">System Architecture Reference</div>
+  <h1 class="display">Test&nbsp;Generator</h1>
+  <p class="lede">A Node.js web application that generates test-specific, timed exercise tests (TKA SMA simulations) for invited candidates, drawn from a weighted question bank the admin controls by topic and difficulty.</p>
+  <div class="cover-meta">
+    <div><span class="k">Runtime</span><span class="v">Node.js 24 · ESM</span></div>
+    <div><span class="k">Framework</span><span class="v">Express 4 + EJS</span></div>
+    <div><span class="k">Storage</span><span class="v">lowdb (JSON file)</span></div>
+    <div><span class="k">Question bank</span><span class="v">1,350 items · 5 topics</span></div>
+    <div><span class="k">Status</span><span class="v">v1 · single-instance</span></div>
+  </div>
+</div>
+
+<div class="shell">
+  <nav class="toc">
+    <div class="toc-group">
+      <div class="toc-label">Orientation</div>
+      <a href="#overview">Overview &amp; goals</a>
+      <a href="#stack">Technology stack</a>
+      <a href="#components">Component map</a>
+    </div>
+    <div class="toc-group">
+      <div class="toc-label">Data</div>
+      <a href="#data-model">Data model</a>
+      <a href="#question-bank">Question bank ingestion</a>
+    </div>
+    <div class="toc-group">
+      <div class="toc-label">Behaviour</div>
+      <a href="#invite-flow">Invite &amp; generate flow</a>
+      <a href="#test-flow">Candidate test flow</a>
+      <a href="#algorithm">Selection algorithm</a>
+      <a href="#routes">Route reference</a>
+    </div>
+    <div class="toc-group">
+      <div class="toc-label">Operations</div>
+      <a href="#security">Security &amp; integrity</a>
+      <a href="#structure">Project structure</a>
+      <a href="#roadmap">Limitations &amp; roadmap</a>
+    </div>
+  </nav>
+
+  <main>
+
+    <section id="overview">
+      <p class="eyebrow">01 — Why this exists</p>
+      <h2 class="display">Overview &amp; goals</h2>
+      <p class="lead">Every test needs a different mix. One simulation might lean toward language literacy, another toward mathematics or economics. This platform lets an admin encode that mix once, per <strong>Test</strong>, and have every invited candidate receive a freshly assembled test that honors it — without hand-picking questions each time.</p>
+      <div class="grid grid-3">
+        <div class="card">
+          <h4>🎯 Personalized by role</h4>
+          <p>A Test defines topic percentages, an optional easy/medium/hard split, question count, time limit and passing score. The generator samples the bank to match.</p>
+        </div>
+        <div class="card">
+          <h4>⏱ Timed, single-session</h4>
+          <p>The timer is anchored server-side at start time. The candidate's browser only renders a countdown to a deadline the server already computed and enforces.</p>
+        </div>
+        <div class="card">
+          <h4>🔗 Zero-friction access</h4>
+          <p>Candidates need no account — a single unguessable link (a 24-character token) is their entire authentication.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="stack">
+      <p class="eyebrow">02 — Foundations</p>
+      <h2 class="display">Technology stack</h2>
+      <p>Chosen for a small, single-instance deployment that a small team can run without provisioning a database server.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Concern</th><th>Choice</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td>Runtime</td><td><code>Node.js 24</code>, native ESM</td><td>No transpile step; top-level <code>await</code> keeps the seed script and db bootstrap simple.</td></tr>
+            <tr><td>Web framework</td><td><code>express@4</code></td><td>Minimal, unopinionated routing — enough for two route groups (admin, candidate).</td></tr>
+            <tr><td>Views</td><td><code>ejs</code></td><td>Server-rendered HTML; no client build pipeline needed for an admin CRUD panel and a quiz page.</td></tr>
+            <tr><td>Data store</td><td><code>lowdb@7</code> over a single <code>data/db.json</code></td><td>The brief calls for lowdb explicitly. One JSON file, one in-process <code>Low</code> instance, atomic <code>db.write()</code> per mutation.</td></tr>
+            <tr><td>Admin auth</td><td><code>express-session</code> + <code>bcryptjs</code></td><td>Cookie session for the admin panel; passwords hashed, never stored or logged in plain text.</td></tr>
+            <tr><td>Candidate auth</td><td><code>nanoid(24)</code> bearer token in the URL</td><td>No signup flow for candidates — the link itself is the credential.</td></tr>
+            <tr><td>Flash messages</td><td><code>connect-flash</code></td><td>One-shot success/error/warning banners across redirects (e.g. bank shortfall warnings).</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="components">
+      <p class="eyebrow">03 — Shape of the system</p>
+      <h2 class="display">Component map</h2>
+      <p>Two browser-facing surfaces share one Express process and one data file. Nothing calls out to an external service.</p>
+      <div class="diagram">
+<pre class="mermaid">
+%%{init: {"theme":"base", "themeVariables": {"primaryColor":"#eaefff","primaryTextColor":"#1b2130","primaryBorderColor":"#2f5cff","lineColor":"#8991a1","secondaryColor":"#f6f7fb","tertiaryColor":"#ffffff","fontFamily":"IBM Plex Sans"}}}%%
+flowchart LR
+  subgraph Browsers
+    A[Admin browser<br/>session cookie]
+    C[Candidate browser<br/>token in URL]
+  end
+
+  subgraph Server["Node.js / Express process"]
+    R1[Admin routes<br/>src/routes/admin.js]
+    R2[Candidate routes<br/>src/routes/candidate.js]
+    S1[testGenerator.js<br/>weighted sampling]
+    S2[scoring.js<br/>grading]
+    V1[EJS admin views]
+    V2[EJS candidate views]
+    L[lib/markdown.js<br/>passage + table renderer]
+  end
+
+  DB[("data/db.json<br/>(lowdb)")]
+  MD[["Bank_Soal_TKA_SMA_*.md"]]
+  SEED[seed.js + parseBank.js]
+
+  A -- HTTPS --> R1
+  C -- HTTPS --> R2
+  R1 --> V1
+  R2 --> V2
+  V2 --> L
+  R1 --> S1
+  R2 --> S2
+  R1 <-- read/write --> DB
+  R2 <-- read/write --> DB
+  MD --> SEED --> DB
+</pre>
+        <div class="cap">One process, one datastore. The seed pipeline (left) runs once via <code>npm run seed</code> and only ever touches the <code>questions</code> collection.</div>
+      </div>
+    </section>
+
+    <section id="data-model">
+      <p class="eyebrow">04 — Storage</p>
+      <h2 class="display">Data model</h2>
+      <p>Six flat collections live inside <code>data/db.json</code>. There are no joins — related records carry each other's ids, and results denormalize the candidate/test names at submission time so history survives later edits or deletions.</p>
+      <div class="diagram">
+<pre class="mermaid">
+%%{init: {"theme":"base", "themeVariables": {"primaryColor":"#eaefff","primaryTextColor":"#1b2130","primaryBorderColor":"#2f5cff","lineColor":"#8991a1","fontFamily":"IBM Plex Sans"}}}%%
+erDiagram
+  TEST ||--o{ CANDIDATE : "invited to"
+  CANDIDATE ||--o{ EXAM : "attempts"
+  EXAM ||--o| RESULT : "graded into"
+  QUESTION }o--o{ EXAM : "selected into questionIds[]"
+
+  TEST {
+    string id
+    string title
+    int totalQuestions
+    int timeLimitMinutes
+    int passingPercent
+    array topicWeights
+    array levelWeights
+  }
+  CANDIDATE {
+    string id
+    string name
+    string email
+    string testId
+  }
+  EXAM {
+    string id
+    string token
+    string status
+    array questionIds
+    string startedAt
+    string deadlineAt
+  }
+  RESULT {
+    string id
+    string examId
+    int percentage
+    bool passed
+    array byCategory
+    array breakdown
+  }
+  QUESTION {
+    string id
+    string category
+    string level
+    string type
+    string text
+    string passage
+    array options
+    array statements
+    int correctIndex
+    array correctIndexes
+    array correctAnswers
+  }
+</pre>
+        <div class="cap">Exam status transitions: <code>pending</code> → <code>in_progress</code> → <code>completed</code>, with a side exit to <code>expired</code> when an admin issues a new link before the old one is used.</div>
+      </div>
+
+      <h3>Field notes</h3>
+      <div class="grid grid-2">
+        <div class="card">
+          <h4><span class="tag">Test</span></h4>
+          <p><code>topicWeights: [{category, percent}]</code> must total 100. <code>levelWeights</code> is the same shape for easy/medium/hard, or <code>null</code> to ignore difficulty entirely when sampling.</p>
+        </div>
+        <div class="card">
+          <h4><span class="tag">Exam</span></h4>
+          <p><code>questionIds</code> is generated once — at invite time, not at start time — so the timer's own countdown is the only thing decided when the candidate clicks Start.</p>
+        </div>
+        <div class="card">
+          <h4><span class="tag">Result</span></h4>
+          <p>Stores the full per-question <code>breakdown</code> (candidate's answer vs. the key, explanation) so the admin's review page needs no re-join against the live question bank.</p>
+        </div>
+        <div class="card">
+          <h4><span class="tag">Question</span></h4>
+          <p><code>type</code> is <code>PG</code> (single answer, key in <code>correctIndex</code>), <code>PGK</code> (several answers, <code>correctIndexes</code>) or <code>BS</code> (Benar/Salah per <code>statements</code>, key in <code>correctAnswers</code>). Questions about the same reading text share a <code>passageId</code>. The key and <code>explanation</code> are stripped out server-side before a question reaches the candidate's HTML — see <a href="#security">Security</a>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="question-bank">
+      <p class="eyebrow">05 — Ingestion</p>
+      <h2 class="display">Question bank ingestion</h2>
+      <p>The five <code>Bank_Soal_TKA_SMA_*.md</code> files in the project root are the source of truth for the bank. <code>src/seed/parseBank.js</code> reads each one and <code>src/seed/seed.js</code> writes the normalized result into the <code>questions</code> collection — safe to re-run any time the source files change. The older <code>parseMarkdown.js</code> is no longer used by the seed.</p>
+
+      <h3>One format, three question types</h3>
+      <p>Every file is parsed line-by-line with the same rules. A reading text (<code>## Teks N — Title</code>) is attached to the questions that follow it, and answers come from the <strong>Rekap Kunci Jawaban</strong> tables, with reasoning taken from the <code>Kunci &amp; Pembahasan</code> blocks.</p>
+      <div class="grid grid-3">
+        <div class="card">
+          <h4>PG</h4>
+          <p>Single answer, options A–E.</p>
+          <pre style="margin:8px 0 0;"><code>**1.** **[PG][Tekstual]** ...
+- A. ...
+- B. ...</code></pre>
+        </div>
+        <div class="card">
+          <h4>PGK</h4>
+          <p>Choose several; the key is a set such as <code>A, C</code>.</p>
+          <pre style="margin:8px 0 0;"><code>**3.** **[PGK][Inferensi]** ...
+- A. ...</code></pre>
+        </div>
+        <div class="card">
+          <h4>BS</h4>
+          <p>A Benar/Salah table; the key is one verdict per statement, such as <code>B–S–B</code>.</p>
+          <pre style="margin:8px 0 0;"><code>**5.** **[BS][Evaluasi]** ...
+| Pernyataan | Benar | Salah |</code></pre>
+        </div>
+      </div>
+
+      <h3>Where difficulty comes from</h3>
+      <p>Each question carries a cognitive-level tag, which is mapped to <code>easy / medium / hard</code>: Tekstual and Pemahaman → easy; Inferensi and Penerapan → medium; Evaluasi, Refleksi and Penalaran → hard.</p>
+      <div class="callout">
+        <strong>Design decision, not a measured fact</strong>
+        The mapping is a starting point, not a certified rating. The admin's <a href="#routes">Question Bank</a> screen lets any question's level be corrected by hand.
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Source file</th><th>Category</th><th>Questions</th></tr></thead>
+          <tbody>
+            <tr><td><code>Bank_Soal_TKA_SMA_Bahasa_Indonesia.md</code></td><td>Bahasa Indonesia</td><td>300</td></tr>
+            <tr><td><code>Bank_Soal_TKA_SMA_Bahasa_Inggris.md</code></td><td>Bahasa Inggris</td><td>300</td></tr>
+            <tr><td><code>Bank_Soal_TKA_SMA_Matematika.md</code></td><td>Matematika</td><td>250</td></tr>
+            <tr><td><code>Bank_Soal_TKA_SMA_Matematika_Lanjut.md</code></td><td>Matematika Lanjut</td><td>250</td></tr>
+            <tr><td><code>Bank_Soal_TKA_SMA_Ekonomi.md</code></td><td>Ekonomi</td><td>250</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="invite-flow">
+      <p class="eyebrow">06 — Sequence</p>
+      <h2 class="display">Invite &amp; generate flow</h2>
+      <p>Question selection happens once, when the admin creates the candidate — not when the candidate starts the test. This means an admin can validate coverage (via the warning banner) before a link is ever sent out.</p>
+      <div class="diagram">
+<pre class="mermaid">
+%%{init: {"theme":"base", "themeVariables": {"primaryColor":"#eaefff","primaryTextColor":"#1b2130","primaryBorderColor":"#2f5cff","lineColor":"#8991a1","actorBkg":"#ffffff","actorBorder":"#2f5cff","fontFamily":"IBM Plex Sans"}}}%%
+sequenceDiagram
+  participant Admin
+  participant Routes as admin.js
+  participant Gen as testGenerator.js
+  participant DB as db.json
+
+  Admin->>Routes: POST /admin/candidates {name, email, testId}
+  Routes->>DB: read test + question bank
+  Routes->>Gen: generateQuestionSet(bank, test)
+  Gen-->>Routes: {questionIds[], warnings[]}
+  Routes->>DB: insert Candidate + Exam(status="pending", token)
+  Routes-->>Admin: flash warnings (if any) + invite link
+</pre>
+      </div>
+    </section>
+
+    <section id="test-flow">
+      <h2 class="display">Candidate test flow</h2>
+      <p>The token is the only state a candidate carries. Reopening the link resumes the same exam rather than restarting it — the timer's deadline was fixed the moment <code>start</code> was first called.</p>
+      <div class="diagram">
+<pre class="mermaid">
+%%{init: {"theme":"base", "themeVariables": {"primaryColor":"#eaefff","primaryTextColor":"#1b2130","primaryBorderColor":"#2f5cff","lineColor":"#8991a1","actorBkg":"#ffffff","actorBorder":"#2f5cff","fontFamily":"IBM Plex Sans"}}}%%
+sequenceDiagram
+  participant Cand as Candidate browser
+  participant Routes as candidate.js
+  participant DB as db.json
+  participant Score as scoring.js
+
+  Cand->>Routes: GET /test/:token
+  Routes->>DB: find exam by token
+  Note over Routes: status = pending
+  Routes-->>Cand: landing page
+
+  Cand->>Routes: POST /test/:token/start
+  Routes->>DB: set startedAt, deadlineAt, status="in_progress"
+  Routes-->>Cand: redirect to /quiz
+
+  Cand->>Routes: GET /test/:token/quiz
+  Routes->>DB: load exam.questionIds → strip answer key/explanation
+  Routes-->>Cand: quiz page + deadline timestamp (ms)
+  Note over Cand: client timer counts down to that timestamp
+
+  Cand->>Routes: POST /test/:token/submit (on click, or timer hits 0)
+  Routes->>Score: gradeExam(questions, answers)
+  Score-->>Routes: {percentage, byCategory, breakdown}
+  Routes->>DB: insert Result, exam.status="completed"
+  Routes-->>Cand: score summary (pass/fail %, no answer key)
+</pre>
+        <div class="cap">A server-side deadline check runs on every <code>GET</code> too — if a candidate abandons the tab and returns after time is up, the exam is auto-finalized with whatever was never submitted graded as unanswered, instead of hanging open indefinitely.</div>
+      </div>
+    </section>
+
+    <section id="algorithm">
+      <p class="eyebrow">07 — Core logic</p>
+      <h2 class="display">Weighted selection algorithm</h2>
+      <p><code>src/services/testGenerator.js</code> turns a Test's percentages into an exact set of question ids. The hard part is that topic and difficulty are two independent constraints being satisfied from the same finite pool — it uses <strong>largest-remainder apportionment</strong> twice, then backfills any shortfall.</p>
+      <ol>
+        <li><strong>Apportion by topic.</strong> <code>totalQuestions</code> is split across categories in proportion to their percentages, rounded so the parts always sum to the whole (largest-remainder method, not naive rounding).</li>
+        <li><strong>Apportion by level, within each topic.</strong> If the Test enforces a difficulty mix, each category's share is split again across easy/medium/hard the same way.</li>
+        <li><strong>Sample without replacement</strong> from the bank for each (category, level) cell, shuffled.</li>
+        <li><strong>Backfill shortfalls</strong> — first from other levels in the same category (protects the topic weight), then from the wider bank (protects the total count), collecting a human-readable warning for every substitution made.</li>
+        <li><strong>Keep reading texts together.</strong> The final order shuffles passage groups, not single questions, so questions about one text stay adjacent and the text is shown once above them.</li>
+      </ol>
+      <div class="callout">
+        <strong>Why largest-remainder, not <code>Math.round</code></strong>
+        Rounding four category percentages independently can land on 41 questions or 39 instead of exactly 40. Largest-remainder apportionment (the method used to allocate parliamentary seats) guarantees the parts always sum to the requested total.
+      </div>
+      <h3>Worked example</h3>
+      <p>A test set to 10 questions, topics <code>Bahasa Indonesia 50% / Bahasa Inggris 30% / Matematika 20%</code>, difficulty <code>easy 40% / medium 40% / hard 20%</code> — produces exactly:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Category</th><th>Requested</th><th>Selected</th></tr></thead>
+          <tbody>
+            <tr><td>Bahasa Indonesia</td><td>50% of 10</td><td><strong>5</strong></td></tr>
+            <tr><td>Bahasa Inggris</td><td>30% of 10</td><td><strong>3</strong></td></tr>
+            <tr><td>Matematika</td><td>20% of 10</td><td><strong>2</strong></td></tr>
+            <tr><td colspan="2">Difficulty — easy / medium / hard</td><td><strong>4 / 4 / 2</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="routes">
+      <p class="eyebrow">08 — Reference</p>
+      <h2 class="display">Route reference</h2>
+      <h3>Admin surface <span class="tag" style="font-size:0.7rem;">session-authenticated</span></h3>
+      <div class="table-wrap route-table">
+        <table>
+          <tbody>
+            <tr><td><span class="method get">GET</span></td><td><code>/admin</code></td><td>Dashboard — counts + recent results</td></tr>
+            <tr><td><span class="method get">GET</span>/<span class="method post">POST</span></td><td><code>/admin/tests[/:id/edit]</code></td><td>List, create, edit test weighting</td></tr>
+            <tr><td><span class="method post">POST</span></td><td><code>/admin/tests/:id/delete</code></td><td>Remove a test</td></tr>
+            <tr><td><span class="method get">GET</span>/<span class="method post">POST</span></td><td><code>/admin/candidates[/new]</code></td><td>List / invite candidates</td></tr>
+            <tr><td><span class="method get">GET</span></td><td><code>/admin/candidates/:id</code></td><td>Candidate detail + invite link</td></tr>
+            <tr><td><span class="method post">POST</span></td><td><code>/admin/candidates/:id/regenerate</code></td><td>Expire old exam, issue a fresh link</td></tr>
+            <tr><td><span class="method get">GET</span></td><td><code>/admin/results[/:id]</code></td><td>Completed tests + full breakdown</td></tr>
+            <tr><td><span class="method get">GET</span></td><td><code>/admin/questions</code></td><td>Browse/filter the bank by topic + level</td></tr>
+            <tr><td><span class="method post">POST</span></td><td><code>/admin/questions/:id/level</code></td><td>Correct a question's difficulty rating</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Candidate surface <span class="tag" style="font-size:0.7rem;">token-authenticated</span></h3>
+      <div class="table-wrap route-table">
+        <table>
+          <tbody>
+            <tr><td><span class="method get">GET</span></td><td><code>/test/:token</code></td><td>Landing → quiz → result, by exam status</td></tr>
+            <tr><td><span class="method post">POST</span></td><td><code>/test/:token/start</code></td><td>Fixes <code>startedAt</code> / <code>deadlineAt</code>, once</td></tr>
+            <tr><td><span class="method get">GET</span></td><td><code>/test/:token/quiz</code></td><td>Renders the question set (answers stripped)</td></tr>
+            <tr><td><span class="method post">POST</span></td><td><code>/test/:token/submit</code></td><td>Grades, stores Result, completes the exam</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="security">
+      <p class="eyebrow">09 — Trust boundaries</p>
+      <h2 class="display">Security &amp; integrity</h2>
+      <div class="grid grid-2">
+        <div class="card">
+          <h4>✅ Answers never reach the browser early</h4>
+          <p>The quiz route maps each question to <code>{id, category, type, text, options, statements, passage…}</code> before rendering — the answer key and <code>explanation</code> simply aren't in the payload, not just hidden by CSS.</p>
+        </div>
+        <div class="card">
+          <h4>✅ Server owns the clock</h4>
+          <p><code>deadlineAt</code> is computed once, server-side, at start. The client timer only displays a countdown to it; every request re-checks the real deadline before accepting an answer.</p>
+        </div>
+        <div class="card">
+          <h4>✅ Passwords are hashed</h4>
+          <p><code>bcryptjs</code> hashes the admin password; the default seeded credential is printed to the console once and documented for the operator to change.</p>
+        </div>
+        <div class="card">
+          <h4>⚠️ Token-in-URL is the whole access model</h4>
+          <p>Anyone with the link can take the test — there's no second factor. Acceptable for a low-stakes take-home exercise; add email verification before using this for anything higher-stakes.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="structure">
+      <p class="eyebrow">10 — Layout</p>
+      <h2 class="display">Project structure</h2>
+      <div class="tree">simulasi-tka/
+├── <span class="hl">Bank_Soal_TKA_SMA_*.md</span>   <span class="dim"># the 5 source question files (question bank)</span>
+├── data/
+│   └── db.json                <span class="dim"># lowdb file — questions, tests, candidates, exams, results, admins</span>
+├── docs/
+│   └── architecture.html      <span class="dim"># this document</span>
+└── src/
+    ├── server.js               <span class="dim"># express app, sessions, static, route mounting</span>
+    ├── db.js                   <span class="dim"># lowdb bootstrap + default admin seed</span>
+    ├── middleware/auth.js       <span class="dim"># requireAdmin session guard</span>
+    ├── lib/markdown.js          <span class="dim"># escapes + renders passages and tables</span>
+    ├── services/
+    │   ├── testGenerator.js     <span class="hl"># weighted apportionment + backfill</span>
+    │   └── scoring.js           <span class="dim"># gradeExam(): PG / PGK / BS, per-category rollup</span>
+    ├── seed/
+    │   ├── parseBank.js         <span class="hl"># Bank_Soal .md → normalized question objects</span>
+    │   ├── parseMarkdown.js     <span class="dim"># legacy parser, unused by the seed</span>
+    │   └── seed.js              <span class="dim"># writes the questions collection (npm run seed)</span>
+    ├── routes/
+    │   ├── admin.js             <span class="dim"># tests, candidates, results, question bank CRUD</span>
+    │   └── candidate.js         <span class="dim"># landing / start / quiz / submit</span>
+    ├── views/
+    │   ├── admin/*.ejs
+    │   ├── candidate/*.ejs
+    │   └── partials/*.ejs
+    └── public/
+        ├── css/style.css
+        └── js/quiz.js           <span class="dim"># countdown timer + localStorage answer autosave</span>
+</div>
+    </section>
+
+    <section id="roadmap">
+      <p class="eyebrow">11 — Honest limitations</p>
+      <h2 class="display">Limitations &amp; roadmap</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Today</th><th>Constraint</th><th>Natural next step</th></tr></thead>
+          <tbody>
+            <tr><td>Single JSON file</td><td>Fine for one Node process; not built for concurrent multi-instance writes</td><td>Swap the lowdb adapter for Postgres/Mongo once load requires horizontal scaling</td></tr>
+            <tr><td>All-or-nothing scoring</td><td>PGK and BS questions earn a point only when every part is right</td><td>Partial credit per correct option or statement</td></tr>
+            <tr><td>In-memory sessions</td><td>Admin sessions reset on process restart</td><td>A persistent session store (Redis/file) if uptime matters</td></tr>
+            <tr><td>No proctoring</td><td>Tab-switching, pasting, multiple attempts aren't detected</td><td>Add visibility-change logging and a one-attempt-per-token guard</td></tr>
+            <tr><td>Tag-derived difficulty</td><td>Levels come from each question's cognitive tag, not a certified rating</td><td>Admin-editable per-question level already ships as the correction path</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>
+      Test Generator — internal architecture reference. Reflects the codebase as of 2026-11-07; re-generate after significant structural changes.
+    </footer>
+  </main>
+</div>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'base', fontFamily: 'IBM Plex Sans' });
+</script>
+</body>
+</html>

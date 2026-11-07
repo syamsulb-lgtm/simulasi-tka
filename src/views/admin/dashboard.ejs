@@ -1,0 +1,72 @@
+<%- include('../partials/adminTop', { title: 'Dashboard', active: 'dashboard' }) %>
+<%- include('../partials/flash') %>
+<div class="page-header">
+  <div>
+    <h1>Dashboard</h1>
+    <p class="subtitle">Overview of your simulasi test program.</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-3">
+  <div class="card stat-card">
+    <div class="num"><%= stats.tests %></div>
+    <div class="label">Tests configured</div>
+  </div>
+  <div class="card stat-card">
+    <div class="num"><%= stats.candidates %></div>
+    <div class="label">Candidates invited</div>
+  </div>
+  <div class="card stat-card">
+    <div class="num"><%= stats.questions %></div>
+    <div class="label">Questions in bank</div>
+  </div>
+  <div class="card stat-card">
+    <div class="num"><%= stats.pending %></div>
+    <div class="label">Tests pending / in progress</div>
+  </div>
+  <div class="card stat-card">
+    <div class="num"><%= stats.completed %></div>
+    <div class="label">Tests completed</div>
+  </div>
+  <div class="card stat-card">
+    <div class="num"><%= stats.avgScore !== null ? stats.avgScore + '%' : '—' %></div>
+    <div class="label">Average score</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="page-header">
+    <h2 style="margin:0;">Recent results</h2>
+    <a href="/admin/results" class="btn btn-secondary btn-sm">View all</a>
+  </div>
+  <% if (recentResults.length === 0) { %>
+    <div class="empty-state">No completed tests yet.</div>
+  <% } else { %>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Candidate</th><th>Test</th><th>Score</th><th>Result</th><th>Submitted</th></tr></thead>
+      <tbody>
+        <% recentResults.forEach(function(r) { %>
+        <tr>
+          <td><%= r.candidateName %></td>
+          <td><%= r.testTitle %></td>
+          <td><%= r.percentage %>% (<%= r.correctCount %>/<%= r.total %>)</td>
+          <td><span class="badge <%= r.passed ? 'badge-pass' : 'badge-fail' %>"><%= r.passed ? 'Pass' : 'Fail' %></span></td>
+          <td><%= r.submittedAtDisplay %></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</div>
+
+<div class="card">
+  <h2>Quick actions</h2>
+  <div class="grid grid-cols-3">
+    <a class="btn" href="/admin/tests/new">+ New Test</a>
+    <a class="btn btn-secondary" href="/admin/candidates/new">+ Invite Candidate</a>
+    <a class="btn btn-secondary" href="/admin/questions">Browse Question Bank</a>
+  </div>
+</div>
+<%- include('../partials/adminBottom') %>
