@@ -2,6 +2,8 @@
 
 A Node.js web app that generates test-specific, timed exercise tests (TKA SMA simulations) for invited candidates. An admin defines a **Test** (topic mix, difficulty mix, question count, time limit, passing score), invites candidates, and each candidate receives a freshly assembled test through a private link. Answers are graded automatically.
 
+**Developer:** Syamsul Bahri, with Claude assistant
+
 ## Features
 
 - **Question bank** of 1,350 questions across 5 topics, parsed from the `Bank_Soal_TKA_SMA_*.md` files.
@@ -98,3 +100,5 @@ All state lives in `data/db.json`. To back up or reset, stop the server and copy
 - Single JSON file and in-memory sessions: built for one Node process. Admin sessions reset on restart.
 - The test link is the only access control. Anyone with the link can take the test.
 - No proctoring (tab switching, pasting and repeat attempts aren't detected).
+
+Note: Use this with caution. Bank Questions never been review. You can create your own Bank Questions with same structure of given mark down file samples.
