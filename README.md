@@ -26,7 +26,7 @@ npm run seed    # load the question bank from the .md files into data/db.json
 npm start       # http://localhost:15001
 ```
 
-Admin panel: http://localhost:15001/admin
+Admin panel: http://your-hostname:15001/admin  (depend on your hostname configuration)
 
 On first run a default admin account is created (`admin` / `admin123`). Change it after logging in (Admin > Account).
 
